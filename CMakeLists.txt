@@ -10,20 +10,36 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_vendor_package REQUIRED)
 
 find_package(Eigen3 REQUIRED)
 find_package(RBDL QUIET)
 
-ament_vendor(rbdl_vendor
-  SATISFIED ${RBDL_FOUND}
-  VCS_URL https://github.com/rbdl/rbdl.git
-  VCS_VERSION v3.2.1
-  CMAKE_ARGS
-    -DRBDL_BUILD_ADDON_URDFREADER:BOOL=ON
-    -DRBDL_BUILD_ADDON_GEOMETRY:BOOL=ON
-    -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
-)
+if(NOT RBDL_FOUND OR TRUE)
+  set(rbdl_version 3.2.1)
+  set(rbdl_install_dir "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-install")
+  set(extra_cmake_args)
+  list(APPEND extra_cmake_args "-D CMAKE_BUILD_TYPE=Release")
+  list(APPEND extra_cmake_args "-D CMAKE_INSTALL_PREFIX=${rbdl_install_dir}")
+  list(APPEND extra_cmake_args "-D CMAKE_POSITION_INDEPENDENT_CODE=ON")
+  list(APPEND extra_cmake_args "-D RBDL_BUILD_ADDON_URDFREADER=ON")
+  list(APPEND extra_cmake_args "-D RBDL_BUILD_ADDON_GEOMETRY=ON")
+  if(DEFINED CMAKE_TOOLCHAIN_FILE)
+    message(FATAL_ERROR "Not support CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
+  else()
+    list(APPEND extra_cmake_args "-D CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
+  endif()
+  include(ExternalProject)
+  externalproject_add(rbdl_${rbdl_version}
+    GIT_REPOSITORY https://github.com/rbdl/rbdl.git
+    GIT_TAG v${rbdl_version}
+    CMAKE_ARGS ${extra_cmake_args}
+  )
+  install(
+    DIRECTORY ${rbdl_install_dir}/
+    DESTINATION ${CMAKE_INSTALL_PREFIX}
+    USE_SOURCE_PERMISSIONS
+  )
+endif()
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
