@@ -14,7 +14,7 @@ find_package(ament_cmake REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(RBDL QUIET)
 
-if(NOT RBDL_FOUND OR TRUE)
+if(NOT RBDL_FOUND)
   set(rbdl_version 3.2.1)
   set(rbdl_install_dir "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-install")
   set(extra_cmake_args)
